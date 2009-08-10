@@ -1,0 +1,61 @@
+#--------------------------------------------------
+#Graphable - A simple object graph library for Ruby
+#--------------------------------------------------
+
+#An easy way to maintain relationships between ruby objects. Example:
+
+require 'graphable'
+
+class Band
+  include Graphable
+  has_children :members, :band
+  attr_reader :name
+  def initialize(name)
+    @name = name
+  end
+  
+  def to_s
+    "#{name} are: #{members.map {|m| m.name}.join(", ")}"
+  end
+end
+  
+class Musician
+  include Graphable
+  has_parent :band, :members
+  attr_reader :name, :instrument
+  def initialize(name, instrument)
+    @name = name
+    @instrument = instrument
+  end    
+end
+
+fugazi = Band.new("Fugazi")
+
+ian = Musician.new("Ian MacKaye", "Guitar")
+joe = Musician.new("Joe Lally", "Bass Guitar")
+colin = Musician.new("Colin Sears", "Drums")
+
+fugazi.members << ian
+fugazi.members << joe
+fugazi.members << colin
+
+fugazi.to_s
+#=> "Fugazi are: Ian MacKaye, Joe Lally, Colin Sears"
+
+colin.band.name
+#=> "Fugazi"
+
+fugazi.members.map! {|member| member.instrument == "Drums" ? Musician.new("Brendan Canty", "Drums") : member}
+
+colin.band
+#=> nil
+
+fugazi.to_s
+#=> Fugazi are: Ian MacKaye, Joe Lally, Brendan Canty
+
+guy = Musician.new("Guy Picciotto", "Guitar")
+fugazi.members << guy
+
+fugazi.to_s
+#=> Fugazi are: Ian MacKaye, Joe Lally, Brendan Canty, Guy Picciotto
+
